@@ -36,15 +36,14 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
         if(class_exists("\SilverStripe\Subsites\Model\SubsiteDomain") && array_key_exists("HTTP_HOST",$_SERVER))
         {
             $host = Convert::raw2sql($_SERVER["HTTP_HOST"]);
-            $subsiteDomain = \SilverStripe\Subsites\Model\SubsiteDomain::get()->filter("Domain",$host)->first();
+            //Maybe rewrite to SQL Request to reduce performance hit further
+            //$subsiteDomain = \SilverStripe\Subsites\Model\SubsiteDomain::get()->filter("Domain",$host)->exclude("Locale","")->first();
+            $subsiteDomain = DB::query("SELECT sd.Locale From SubsiteDomain sd WHERE sd.Domain = '".$host."' AND sd.Locale != ''")->value();
             if($subsiteDomain != null)
             {
                 $LocaleString = $subsiteDomain->Locale;
-                if($LocaleString != "")
-                {
-                    FluentState::singleton()->setLocale($LocaleString);
-                    $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
-                } 
+                FluentState::singleton()->setLocale($LocaleString);
+                $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
             }
         }
         if(!$defaultLocale)
