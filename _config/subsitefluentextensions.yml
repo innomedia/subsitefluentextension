@@ -1,0 +1,13 @@
+---
+Name: subsitefluentextensions
+Only:
+  moduleexists: 
+    - 'tractorcow/silverstripe-fluent'
+    - 'silverstripe/subsites'
+---
+SilverStripe\Subsites\Model\SubsiteDomain:
+  extensions:
+    - SubsiteFluentExtensions\SubsiteDomainExtension
+SilverStripe\Core\Injector\Injector:
+  TractorCow\Fluent\Extension\FluentDirectorExtension:
+    class: SubsiteFluentExtensions\FluentDirectorExtensionInjector
