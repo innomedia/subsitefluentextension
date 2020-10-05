@@ -40,8 +40,11 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
             if($subsiteDomain != null)
             {
                 $LocaleString = $subsiteDomain->Locale;
-                FluentState::singleton()->setLocale($LocaleString);
-                $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
+                if($LocaleString != "")
+                {
+                    FluentState::singleton()->setLocale($LocaleString);
+                    $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
+                } 
             }
         }
         if(!$defaultLocale)
