@@ -36,16 +36,22 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
         $defaultLocale = null;
         if(class_exists("\SilverStripe\Subsites\Model\SubsiteDomain") && array_key_exists("HTTP_HOST",$_SERVER))
         {
-            $host = Convert::raw2sql($_SERVER["HTTP_HOST"]);
-            //Maybe rewrite to SQL Request to reduce performance hit further
-            //$subsiteDomain = \SilverStripe\Subsites\Model\SubsiteDomain::get()->filter("Domain",$host)->exclude("Locale","")->first();
-            $subsiteDomain = DB::query("SELECT sd.Locale From SubsiteDomain sd WHERE sd.Domain = '".$host."' AND sd.Locale != ''")->value();
-            if($subsiteDomain != null)
+            try{
+                $host = Convert::raw2sql($_SERVER["HTTP_HOST"]);
+                //Maybe rewrite to SQL Request to reduce performance hit further
+                //$subsiteDomain = \SilverStripe\Subsites\Model\SubsiteDomain::get()->filter("Domain",$host)->exclude("Locale","")->first();
+                $subsiteDomain = DB::query("SELECT sd.Locale From SubsiteDomain sd WHERE sd.Domain = '".$host."' AND sd.Locale != ''")->value();
+                if($subsiteDomain != null)
+                {
+                    $LocaleString = $subsiteDomain->Locale;
+                    FluentState::singleton()->setLocale($LocaleString);
+                    $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
+                }
+            }catch(\SilverStripe\ORM\Connect\DatabaseException $ex)
             {
-                $LocaleString = $subsiteDomain->Locale;
-                FluentState::singleton()->setLocale($LocaleString);
-                $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
+                //DO nothing this is for build
             }
+            
         }
         if(!$defaultLocale)
         {
