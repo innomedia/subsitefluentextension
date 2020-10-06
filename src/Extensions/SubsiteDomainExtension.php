@@ -19,6 +19,6 @@ class SubsiteDomainExtension extends DataExtension
         {
             $preparedlocales[$locale->Locale] = $locale->Title;
         }
-        $fields->push(DropdownField::create("Locale","Locale",$preparedlocales)->setEmptyDefault(""));
+        $fields->push(DropdownField::create("Locale","Locale",$preparedlocales)->setEmptyString(""));
     }
 }
