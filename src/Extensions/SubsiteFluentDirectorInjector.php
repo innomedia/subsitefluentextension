@@ -13,6 +13,7 @@ use SilverStripe\Core\Injector\Injector;
 use TractorCow\Fluent\State\FluentState;
 use TractorCow\Fluent\Middleware\InitStateMiddleware;
 use TractorCow\Fluent\Extension\FluentDirectorExtension;
+use SilverStripe\ORM\DB;
 
 class FluentDirectorExtensionInjector extends FluentDirectorExtension
 {
