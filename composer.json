@@ -2,7 +2,6 @@
     "name":"innomedia/subsitefluentextensions",
     "description": "Silverstripe 4 Subsite Fluent Extensions",
     "license": "BSD-3-Clause",
-    "version": "0.2.4",
     "authors": [
       {
         "name":"Innomedia AG",
