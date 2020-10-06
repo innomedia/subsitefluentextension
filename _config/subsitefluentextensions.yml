@@ -11,3 +11,5 @@ SilverStripe\Subsites\Model\SubsiteDomain:
 SilverStripe\Core\Injector\Injector:
   TractorCow\Fluent\Extension\FluentDirectorExtension:
     class: SubsiteFluentExtensions\FluentDirectorExtensionInjector
+  TractorCow\Fluent\Extension\FluentSiteTreeExtension:
+    class: SubsiteFluentExtensions\FluentSiteTreeInjector
