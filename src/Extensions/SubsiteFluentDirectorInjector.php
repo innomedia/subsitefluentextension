@@ -43,7 +43,7 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
                 $subsiteDomain = DB::query("SELECT sd.Locale From SubsiteDomain sd WHERE sd.Domain = '".$host."' AND sd.Locale != ''")->value();
                 if($subsiteDomain != null)
                 {
-                    $LocaleString = $subsiteDomain->Locale;
+                    $LocaleString = $subsiteDomain;
                     FluentState::singleton()->setLocale($LocaleString);
                     $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
                 }
