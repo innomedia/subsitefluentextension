@@ -17,6 +17,10 @@ use SilverStripe\ORM\DB;
 
 class FluentDirectorExtensionInjector extends FluentDirectorExtension
 {
+    public function AdminAddressInSERVER()
+    {
+        return (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"admin/pages") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"admin/pages") !== false );
+    }
     public function updateRules(&$rules)
     {
         $originalRules = $rules;
@@ -34,7 +38,7 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
         Injector::inst()->create(InitStateMiddleware::class)->process($request, function () {
         });
         $defaultLocale = null;
-        if(class_exists("\SilverStripe\Subsites\Model\SubsiteDomain") && array_key_exists("HTTP_HOST",$_SERVER))
+        if(class_exists("\SilverStripe\Subsites\Model\SubsiteDomain") && array_key_exists("HTTP_HOST",$_SERVER) && !$this->AdminAddressInSERVER())
         {
             try{
                 $host = Convert::raw2sql($_SERVER["HTTP_HOST"]);
