@@ -19,7 +19,9 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
 {
     public function AdminAddressInSERVER()
     {
-        return (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"admin/pages") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"admin/pages") !== false );
+        return (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"admin/pages") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"admin/pages") !== false )
+        || (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"admin/graphql") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"admin/graphql") !== false )
+        ;
     }
     public function updateRules(&$rules)
     {
