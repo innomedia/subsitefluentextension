@@ -37,7 +37,8 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
 
         return FluentState::singleton()->withState(function (FluentState $state) use ($Locale) {
             $state->setLocale($Locale);
-            return $this->owner->Link();
+            $page = SiteTree::get()->byID($this->owner->ID);
+            return $page->Link();
         });
     }
     protected function getPageSubsiteDomainByLocale($Locale,$SubsiteID)
