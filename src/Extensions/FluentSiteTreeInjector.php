@@ -18,10 +18,27 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         if($this->owner->SubsiteID > 0)
         {
             $base = $this->getPageSubsiteDomainByLocale($Locale,$this->owner->SubsiteID);
-            return Controller::join_links($base,$this->owner->RelativeLink());
+            $relativeLink = $this->owner->RelativeLink();
+            $currentLocale = Locale::getCurrentLocale();
+
+            if ($currentLocale != null && $currentLocale->DomainID > 0) {
+                
+                $relativeLink = str_replace($currentLocale->URLSegment . '/', '', $relativeLink);
+                if($relativeLink == $currentLocale->URLSegment)
+                {
+                    $relativeLink = "/";
+                }
+            }
+            
+            return Controller::join_links($base,$relativeLink);
         }
+
         //On Mainsite default Link.Att works correctly
-        return $this->owner->Link();
+
+        return FluentState::singleton()->withState(function (FluentState $state) use ($Locale) {
+            $state->setLocale($Locale);
+            return $this->owner->Link();
+        });
     }
     protected function getPageSubsiteDomainByLocale($Locale,$SubsiteID)
     {
