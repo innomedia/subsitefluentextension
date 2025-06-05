@@ -13,6 +13,34 @@ use TractorCow\Fluent\State\FluentState;
 
 class FluentSiteTreeInjector extends FluentSiteTreeExtension
 {
+    public function LocaleLink($Locale)
+    {
+        if($this->owner->SubsiteID > 0)
+        {
+            $base = $this->getPageSubsiteDomainByLocale($Locale,$this->owner->SubsiteID);
+            return Controller::join_links($base,$this->owner->RelativeLink());
+        }
+        //On Mainsite default Link.Att works correctly
+        return $this->owner->Link();
+    }
+    protected function getPageSubsiteDomainByLocale($Locale,$SubsiteID)
+    {
+        $subsiteDomain = DB::query("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = $SubsiteID AND sd.Locale = '$Locale'")->value();
+        if ($subsiteDomain != null && $subsiteDomain != "") {
+            if (!strpos($subsiteDomain, "https://") && !strpos($subsiteDomain, "http://")) {
+                $preHost = "http://";
+                if (Director::is_https()) {
+                    $preHost = "https://";
+                }
+                $subsiteDomain = $preHost . $subsiteDomain;
+            }
+
+            $subsiteDomain = Controller::join_links($subsiteDomain, Director::baseURL());
+        } else {
+            $subsiteDomain = Director::absoluteBaseURL();
+        }
+        return $subsiteDomain;
+    }
     protected function addLocalePrefixToUrlSegment(FieldList $fields)
     {
 
