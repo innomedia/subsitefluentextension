@@ -1,6 +1,8 @@
 <?php
+
 namespace SubsiteFluentExtensions;
 
+use SilverStripe\Forms\FormField;
 use SilverStripe\CMS\Forms\SiteTreeURLSegmentField;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
@@ -41,15 +43,17 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
             return $page->Link();
         });
     }
+    
     protected function getPageSubsiteDomainByLocale($Locale,$SubsiteID)
     {
-        $subsiteDomain = DB::query("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = $SubsiteID AND sd.Locale = '$Locale'")->value();
+        $subsiteDomain = DB::query(sprintf("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = %s AND sd.Locale = '%s'", $SubsiteID, $Locale))->value();
         if ($subsiteDomain != null && $subsiteDomain != "") {
             if (!strpos($subsiteDomain, "https://") && !strpos($subsiteDomain, "http://")) {
                 $preHost = "http://";
                 if (Director::is_https()) {
                     $preHost = "https://";
                 }
+                
                 $subsiteDomain = $preHost . $subsiteDomain;
             }
 
@@ -57,19 +61,22 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         } else {
             $subsiteDomain = Director::absoluteBaseURL();
         }
+        
         return $subsiteDomain;
     }
+    
     protected function addLocalePrefixToUrlSegment(FieldList $fields)
     {
 
         // Ensure the field is available in the list
         $segmentField = $fields->fieldByName('Root.Main.URLSegment');
-        if (!$segmentField || !($segmentField instanceof SiteTreeURLSegmentField)) {
+        if (!$segmentField instanceof FormField || !($segmentField instanceof SiteTreeURLSegmentField)) {
             return $this;
         }
+        
         // Mock frontend and get link to parent object / page
         $baseURL = FluentState::singleton()
-            ->withState(function (FluentState $tempState) {
+            ->withState(function (FluentState $tempState): string {
                 $tempState->setIsDomainMode(true);
                 $tempState->setIsFrontend(true);
 
@@ -81,6 +88,7 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
                     $action = null;
                     $this->updateRelativeLink($parentRelative, $action);
                 }
+                
                 if ($this->owner->SubsiteID == 0) {
                     $domain = Locale::getCurrentLocale()->getDomain();
                     if ($domain) {
@@ -94,6 +102,7 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
                     $parentBase = $this->getSubsiteDomainByLocale($Locale,$SubsiteID);
                     
                 }
+                
                 // Get absolute base path
 
                 // Join base / relative links
@@ -104,7 +113,8 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         $segmentField->setURLPrefix($baseURL);
         return $this;
     }
-    public function updateLink(&$link, &$action, &$relativeLink)
+    
+    public function updateLink(&$link, &$action, &$relativeLink): void
     {
 
         // Get appropriate locale for this record
@@ -116,11 +126,7 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
             $Locale = Locale::getCurrentLocale()->Locale;
             $SubsiteID = $this->owner->SubsiteID;
             $SubsiteBaseLink = $this->getSubsiteDomainByLocale($Locale,$SubsiteID);
-            if($SubsiteBaseLink != "")
-            {
-
-            }
-            if(strpos($link,$Locale) !== false)
+            if(str_contains((string) $link,(string) $Locale))
             {
                 $link = str_replace($Locale."/","",$link);
             }
@@ -128,22 +134,23 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
             $link = Controller::join_links($SubsiteBaseLink,$link);
         }
     }
-    private function getSubsiteDomainByLocale($Locale,$SubsiteID)
+    
+    private function getSubsiteDomainByLocale($Locale,string $SubsiteID)
     {
-        $subsiteDomain = DB::query("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = $SubsiteID AND sd.Locale = '$Locale'")->value();
+        $subsiteDomain = DB::query(sprintf("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = %s AND sd.Locale = '%s'", $SubsiteID, $Locale))->value();
         if ($subsiteDomain != null && $subsiteDomain != "") {
             if (!strpos($subsiteDomain, "https://") && !strpos($subsiteDomain, "http://")) {
                 $preHost = "http://";
                 if (Director::is_https()) {
                     $preHost = "https://";
                 }
+                
                 $subsiteDomain = $preHost . $subsiteDomain;
             }
-
-            $parentBase .= Controller::join_links($subsiteDomain, Director::baseURL());
         } else {
             $subsiteDomain = Director::absoluteBaseURL();
         }
+        
         return $subsiteDomain;
     }
 }

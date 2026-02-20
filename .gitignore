@@ -1,0 +1,4 @@
+/vendor/
+/public/
+/.idea/
+/rector.php

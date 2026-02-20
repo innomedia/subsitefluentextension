@@ -1,19 +1,21 @@
 {
-    "name":"innomedia/subsitefluentextensions",
-    "description": "Silverstripe 4 Subsite Fluent Extensions",
-    "license": "BSD-3-Clause",
-    "authors": [
-      {
-        "name":"Innomedia AG",
-        "email": "bk@innomedia.de"
-      }
-    ],
-    "require": {
-        "silverstripe/framework": "^5"
-    },
-    "autoload": {
-      "psr-4": {
-        "subsitefluentextensions\\": "src/"
-      }
+  "name": "innomedia/subsitefluentextensions",
+  "description": "Silverstripe 6 Subsite Fluent Extensions",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Innomedia AG",
+      "email": "bk@innomedia.de"
     }
+  ],
+  "require": {
+    "silverstripe/framework": "^6",
+    "tractorcow/silverstripe-fluent": "^8",
+    "silverstripe/subsites": "^4"
+  },
+  "autoload": {
+    "psr-4": {
+      "subsitefluentextensions\\": "src/"
+    }
+  }
 }

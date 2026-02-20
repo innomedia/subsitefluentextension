@@ -1,14 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace SubsiteFluentExtensions;
 
+use SilverStripe\ORM\Connect\DatabaseException;
 use Exception;
-use SilverStripe\Dev\Debug;
-use SilverStripe\Core\Kernel;
 use SilverStripe\Core\Convert;
-use SilverStripe\Control\Director;
 use TractorCow\Fluent\Model\Locale;
 use SilverStripe\Control\HTTPRequest;
-use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Injector\Injector;
 use TractorCow\Fluent\State\FluentState;
 use TractorCow\Fluent\Middleware\InitStateMiddleware;
@@ -19,12 +19,13 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
 {
     public function AdminAddressInSERVER()
     {
-        return (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"admin/pages") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"admin/pages") !== false )
-        || (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"admin/graphql") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"admin/graphql") !== false )
-        || (array_key_exists("REQUEST_URI",$_SERVER) && strpos($_SERVER["REQUEST_URI"],"dev/build") !== false ) || (array_key_exists("REDIRECT_URL",$_SERVER) && strpos($_SERVER["REDIRECT_URL"],"dev/build") !== false )
+        return (array_key_exists("REQUEST_URI",$_SERVER) && str_contains((string) $_SERVER["REQUEST_URI"],"admin/pages") ) || (array_key_exists("REDIRECT_URL",$_SERVER) && str_contains((string) $_SERVER["REDIRECT_URL"],"admin/pages") )
+        || (array_key_exists("REQUEST_URI",$_SERVER) && str_contains((string) $_SERVER["REQUEST_URI"],"admin/graphql") ) || (array_key_exists("REDIRECT_URL",$_SERVER) && str_contains((string) $_SERVER["REDIRECT_URL"],"admin/graphql") )
+        || (array_key_exists("REQUEST_URI",$_SERVER) && str_contains((string) $_SERVER["REQUEST_URI"],"dev/build") ) || (array_key_exists("REDIRECT_URL",$_SERVER) && str_contains((string) $_SERVER["REDIRECT_URL"],"dev/build") )
         ;
     }
-    public function updateRules(&$rules)
+    
+    public function updateRules(&$rules): void
     {
         $originalRules = $rules;
         $fluentRules = $this->getExplicitRoutes($rules);
@@ -38,7 +39,7 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
         }
 
         // Ensure InitStateMddleware is called here to set the correct defaultLocale
-        Injector::inst()->create(InitStateMiddleware::class)->process($request, function () {
+        Injector::inst()->create(InitStateMiddleware::class)->process($request, function (): void {
         });
         $defaultLocale = null;
         $host = Convert::raw2sql($_SERVER["HTTP_HOST"]);
@@ -55,12 +56,13 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
                     FluentState::singleton()->setLocale($LocaleString);
                     $defaultLocale = Locale::get()->filter("Locale",$LocaleString)->first();
                 }
-            }catch(\SilverStripe\ORM\Connect\DatabaseException $ex)
+            }catch(DatabaseException)
             {
                 //DO nothing this is for build
             }
             
         }
+        
         if(!$defaultLocale)
         {
             $defaultLocale = Locale::getDefault($host);
@@ -68,6 +70,7 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
                 return;
             }
         }
+        
         // If we do not wish to detect the locale automatically, fix the home page route
         // to the default locale for this domain.
         if (!static::config()->get('detect_locale')) {
@@ -77,6 +80,7 @@ class FluentDirectorExtensionInjector extends FluentDirectorExtension
                 static::config()->get('query_param') => $defaultLocale->Locale,
             ];
         }
+        
         // If default locale doesn't have prefix, replace default route with
         // the default locale for this domain
         if (static::config()->get('disable_default_prefix')) {
