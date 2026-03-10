@@ -15,23 +15,42 @@ use TractorCow\Fluent\State\FluentState;
 
 class FluentSiteTreeInjector extends FluentSiteTreeExtension
 {
+    private function hasHttpScheme(string $domain): bool
+    {
+        return str_starts_with($domain, 'https://') || str_starts_with($domain, 'http://');
+    }
+
+    private function getDomainBySubsiteAndLocale(int $subsiteID, string $locale): ?string
+    {
+        $query = DB::prepared_query(
+            'SELECT "Domain" FROM "SubsiteDomain" WHERE "SubsiteID" = ? AND "Locale" = ?',
+            [$subsiteID, $locale]
+        );
+        $domain = $query->value();
+        if (!$domain) {
+            return null;
+        }
+
+        return (string) $domain;
+    }
+
     public function LocaleLink($Locale)
     {
         if($this->owner->SubsiteID > 0)
         {
-            $base = $this->getPageSubsiteDomainByLocale($Locale,$this->owner->SubsiteID);
+            $base = $this->getPageSubsiteDomainByLocale((string) $Locale, (int) $this->owner->SubsiteID);
             $relativeLink = $this->owner->RelativeLink();
             $currentLocale = Locale::getCurrentLocale();
 
             if ($currentLocale != null && $currentLocale->DomainID > 0) {
-                
+
                 $relativeLink = str_replace($currentLocale->URLSegment . '/', '', $relativeLink);
                 if($relativeLink == $currentLocale->URLSegment)
                 {
                     $relativeLink = "/";
                 }
             }
-            
+
             return Controller::join_links($base,$relativeLink);
         }
 
@@ -43,17 +62,17 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
             return $page->Link();
         });
     }
-    
-    protected function getPageSubsiteDomainByLocale($Locale,$SubsiteID)
+
+    protected function getPageSubsiteDomainByLocale(string $locale, int $subsiteID): string
     {
-        $subsiteDomain = DB::query(sprintf("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = %s AND sd.Locale = '%s'", $SubsiteID, $Locale))->value();
-        if ($subsiteDomain != null && $subsiteDomain != "") {
-            if (!strpos($subsiteDomain, "https://") && !strpos($subsiteDomain, "http://")) {
+        $subsiteDomain = $this->getDomainBySubsiteAndLocale($subsiteID, $locale);
+        if ($subsiteDomain !== null && $subsiteDomain !== '') {
+            if (!$this->hasHttpScheme($subsiteDomain)) {
                 $preHost = "http://";
                 if (Director::is_https()) {
                     $preHost = "https://";
                 }
-                
+
                 $subsiteDomain = $preHost . $subsiteDomain;
             }
 
@@ -61,10 +80,10 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         } else {
             $subsiteDomain = Director::absoluteBaseURL();
         }
-        
+
         return $subsiteDomain;
     }
-    
+
     protected function addLocalePrefixToUrlSegment(FieldList $fields)
     {
 
@@ -73,7 +92,7 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         if (!$segmentField instanceof FormField || !($segmentField instanceof SiteTreeURLSegmentField)) {
             return $this;
         }
-        
+
         // Mock frontend and get link to parent object / page
         $baseURL = FluentState::singleton()
             ->withState(function (FluentState $tempState): string {
@@ -88,7 +107,7 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
                     $action = null;
                     $this->updateRelativeLink($parentRelative, $action);
                 }
-                
+
                 if ($this->owner->SubsiteID == 0) {
                     $domain = Locale::getCurrentLocale()->getDomain();
                     if ($domain) {
@@ -98,11 +117,11 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
                     }
                 } else {
                     $Locale = Locale::getCurrentLocale()->Locale;
-                    $SubsiteID = $this->owner->SubsiteID;
-                    $parentBase = $this->getSubsiteDomainByLocale($Locale,$SubsiteID);
-                    
+                    $SubsiteID = (int) $this->owner->SubsiteID;
+                    $parentBase = $this->getSubsiteDomainByLocale((string) $Locale, $SubsiteID);
+
                 }
-                
+
                 // Get absolute base path
 
                 // Join base / relative links
@@ -113,7 +132,7 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         $segmentField->setURLPrefix($baseURL);
         return $this;
     }
-    
+
     public function updateLink(&$link, &$action, &$relativeLink): void
     {
 
@@ -124,33 +143,33 @@ class FluentSiteTreeInjector extends FluentSiteTreeExtension
         else
         {
             $Locale = Locale::getCurrentLocale()->Locale;
-            $SubsiteID = $this->owner->SubsiteID;
-            $SubsiteBaseLink = $this->getSubsiteDomainByLocale($Locale,$SubsiteID);
+            $SubsiteID = (int) $this->owner->SubsiteID;
+            $SubsiteBaseLink = $this->getSubsiteDomainByLocale((string) $Locale, $SubsiteID);
             if(str_contains((string) $link,(string) $Locale))
             {
                 $link = str_replace($Locale."/","",$link);
             }
-            
+
             $link = Controller::join_links($SubsiteBaseLink,$link);
         }
     }
-    
-    private function getSubsiteDomainByLocale($Locale,string $SubsiteID)
+
+    private function getSubsiteDomainByLocale(string $locale, int $subsiteID): string
     {
-        $subsiteDomain = DB::query(sprintf("SELECT sd.Domain From SubsiteDomain sd WHERE sd.SubsiteID = %s AND sd.Locale = '%s'", $SubsiteID, $Locale))->value();
-        if ($subsiteDomain != null && $subsiteDomain != "") {
-            if (!strpos($subsiteDomain, "https://") && !strpos($subsiteDomain, "http://")) {
+        $subsiteDomain = $this->getDomainBySubsiteAndLocale($subsiteID, $locale);
+        if ($subsiteDomain !== null && $subsiteDomain !== '') {
+            if (!$this->hasHttpScheme($subsiteDomain)) {
                 $preHost = "http://";
                 if (Director::is_https()) {
                     $preHost = "https://";
                 }
-                
+
                 $subsiteDomain = $preHost . $subsiteDomain;
             }
         } else {
             $subsiteDomain = Director::absoluteBaseURL();
         }
-        
+
         return $subsiteDomain;
     }
 }

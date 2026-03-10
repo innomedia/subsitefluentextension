@@ -20,7 +20,7 @@ class SubsiteDomainExtension extends Extension
         {
             $preparedlocales[$locale->Locale] = $locale->Title;
         }
-        
+
         $fields->push(DropdownField::create("Locale","Locale",$preparedlocales)->setEmptyString(""));
     }
 }
